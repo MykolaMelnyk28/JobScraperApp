@@ -35,12 +35,12 @@ import static com.mykolamelnyk.JobScraperApp.util.scratching.HtmlIdentifiers.*;
 @RequiredArgsConstructor
 public class JobScratcherImpl implements JobScratcher {
 
-    private static final int BATCH_SIZE = 100;
-
     private final String baseUrl;
     private final ObjectMapper objectMapper;
     private final ElementMapper<JobDto> jobElementMapper;
     private final ElementMapper<Integer> integerElementMapper;
+
+    private static final int BATCH_SIZE = 100;
 
     @Override
     public int getTotalSize() throws IOException {
@@ -103,12 +103,14 @@ public class JobScratcherImpl implements JobScratcher {
         }
     }
 
-    private Document getJobsPageDocument(Map<String, Object> filter, Pageable pageable) throws IOException {
-        System.setProperty("webdriver.chrome.driver", "chromedriver-win64\\chromedriver.exe");
-
+    public Document getJobsPageDocument(Map<String, Object> filter, Pageable pageable) throws IOException {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-gpu");
+        options.addArguments("--headless=new");
         options.addArguments("--window-size=1920,1080");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.7151.104 Safari/537.36");
 
         WebDriver driver = new ChromeDriver(options);
 
@@ -119,14 +121,12 @@ public class JobScratcherImpl implements JobScratcher {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             By loadMoreSelector = By.cssSelector(JOB_LIST_LOAD_MORE_BUTTON_SELECTOR);
             By totalSizeSelector = By.cssSelector(JOB_LIST_TOTAL_SIZE_SELECTOR);
+            By jobItemSelector = By.cssSelector(JOB_LIST_ITEM_SELECTOR);
 
-            int totalSize = wait.until(ExpectedConditions.presenceOfElementLocated(totalSizeSelector))
-                .getText()
-                .replaceAll("[^\\d]", "")
-                .trim()
-                .isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(
-                wait.until(ExpectedConditions.presenceOfElementLocated(totalSizeSelector))
-                    .getText().replaceAll("[^\\d]", ""));
+            String totalSizeText = wait.until(ExpectedConditions.visibilityOfElementLocated(totalSizeSelector)).getText();
+            int totalSize = totalSizeText.replaceAll("[^\\d]", "").trim().isEmpty()
+                ? Integer.MAX_VALUE
+                : Integer.parseInt(totalSizeText.replaceAll("[^\\d]", ""));
 
             int targetCount = pageable == null
                 ? totalSize
@@ -136,29 +136,32 @@ public class JobScratcherImpl implements JobScratcher {
                 return Jsoup.parse(driver.getPageSource());
             }
 
-            WebElement loadMoreBtn = wait.until(ExpectedConditions.presenceOfElementLocated(loadMoreSelector));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreBtn);
-            wait.until(ExpectedConditions.elementToBeClickable(loadMoreBtn)).click();
-            log.info("✅ 'Load more' button clicked.");
-            Thread.sleep(1500);
+            int loadedCount = driver.findElements(jobItemSelector).size();
 
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            int loadedCount = 0;
+            List<WebElement> loadMoreButtons = driver.findElements(loadMoreSelector);
+            if (!loadMoreButtons.isEmpty()) {
+                WebElement loadMoreBtn = loadMoreButtons.get(0);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreBtn);
+                wait.until(ExpectedConditions.elementToBeClickable(loadMoreBtn)).click();
+                log.info("✅ 'Load more' button clicked.");
+
+                wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(jobItemSelector, loadedCount));
+                loadedCount = driver.findElements(jobItemSelector).size();
+            }
+
             int attempts = 0;
-
             while (loadedCount < targetCount && attempts < 30) {
-                js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
-                Thread.sleep(2000);
-                loadedCount = driver.findElements(By.cssSelector(JOB_LIST_ITEM_SELECTOR)).size();
+                ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, document.body.scrollHeight);");
+
+                wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(jobItemSelector, loadedCount));
+
+                loadedCount = driver.findElements(jobItemSelector).size();
                 log.info("⬇️ Loaded jobs: {}/{}", loadedCount, targetCount);
+
                 attempts++;
             }
 
             return Jsoup.parse(driver.getPageSource());
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread interrupted while scrolling", e);
         } finally {
             driver.quit();
         }

@@ -32,7 +32,11 @@ services:
       - "8080:8080"
     networks:
       - job-scrapper-app-network
+    environment:
+      webdriver.chrome.driver: '/app/chromedriver-win64'
     env_file:
       - .env
     depends_on:
       - postgres
+    volumes:
+      - ./chromedriver-win64:/app/chromedriver-win64

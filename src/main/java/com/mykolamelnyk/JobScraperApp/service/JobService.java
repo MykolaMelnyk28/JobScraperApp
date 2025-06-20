@@ -78,11 +78,7 @@ public class JobService {
             List<Job> page = jobScratcher.fetchAll(filter, pageable)
                 .map(JobDto::toEntity)
                 .toList();
-            page.forEach(x -> {
-                System.out.println(x);
-            });
-            List<Job> saved = ensureJobs(page);
-            return saved;
+            return ensureJobs(page);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

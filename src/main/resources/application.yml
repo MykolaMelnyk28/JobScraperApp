@@ -9,11 +9,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
     properties:
       hibernate.jdbc.batch_size: 50
       hibernate.order_inserts: true
       hibernate.order_updates: true
+
+webdriver:
+  chrome:
+    driver: 'chromedriver-win64/chromedriver.exe'
 
 scratcher:
   base-url: 'https://jobs.techstars.com'
