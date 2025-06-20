@@ -1,10 +1,10 @@
-package com.mykolamelnyk.JobScraperApp.service;
+package com.mykolamelnyk.JobScraperApp.util.scratching;
 
 import org.jsoup.select.Elements;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface ElementsMapper<T> {
-    List<T> map(Elements elements);
+    Stream<T> map(Elements elements);
 }

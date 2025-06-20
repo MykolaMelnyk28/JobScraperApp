@@ -1,4 +1,4 @@
-package com.mykolamelnyk.JobScraperApp.service;
+package com.mykolamelnyk.JobScraperApp.util.scratching;
 
 import org.jsoup.nodes.Element;
 
