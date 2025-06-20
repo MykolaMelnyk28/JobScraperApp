@@ -31,6 +31,8 @@
 		<flyway.version>11.8.1</flyway.version>
 		<lombok.version>1.18.38</lombok.version>
 		<jsoup.version>1.19.1</jsoup.version>
+		<selenium-java.version>4.25.0</selenium-java.version>
+		<webdrivermanager.version>5.8.0</webdrivermanager.version>
 	</properties>
 
 	<dependencies>
@@ -45,6 +47,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
@@ -54,18 +60,6 @@
 			<artifactId>postgresql</artifactId>
 			<version>${postgresql.version}</version>
 			<scope>runtime</scope>
-		</dependency>
-
-		<!--Flyway-->
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-			<version>${flyway.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-database-postgresql</artifactId>
-			<version>${flyway.version}</version>
 		</dependency>
 
 		<!--Lombok-->
@@ -81,6 +75,20 @@
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>${jsoup.version}</version>
+		</dependency>
+
+		<!-- Selenium Java core -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium-java.version}</version>
+		</dependency>
+
+		<!-- WebDriverManager -->
+		<dependency>
+			<groupId>io.github.bonigarcia</groupId>
+			<artifactId>webdrivermanager</artifactId>
+			<version>${webdrivermanager.version}</version>
 		</dependency>
 
 		<!--Tests-->
@@ -105,13 +113,6 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<finalName>${project.artifactId}</finalName>
 				</configuration>
 			</plugin>
 			<plugin>
