@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <title>Home</title>
+</head>
+<body>
+<div class="container">
+    <div class="mb-3">
+        <div class="card p-3">
+            <form id="syncForm" th:action="@{/synchronize}" method="post" class="d-flex flex-wrap align-items-center gap-3">
+                <p class="mb-0 flex-grow-1">
+                    Count jobs on jobs.techstars.com: <b th:text="${syncTotalSize}"></b>
+                </p>
+                <label for="laborFunctionsSelect" class="mb-0 me-2">Filters:</label>
+                <select class="form-select w-auto" id="laborFunctionsSelect" name="laborFunctions">
+                    <option value="All" selected>All</option>
+                    <option th:each="item : ${jobFunctions}" th:text="${item}" th:value="${item}"></option>
+                </select>
+                <input type="number" step="1" min="0" name="page" placeholder="Page" class="form-control w-auto" style="min-width: 110px;" value="0"/>
+                <input type="number" step="1" min="0" name="size" placeholder="Size" class="form-control w-auto" style="min-width: 110px;" value="10">
+
+                <button id="syncBtn" class="btn btn-primary ms-auto" type="submit">
+                    Synchronize jobs
+                </button>
+
+                <div id="loadingIndicator" class="ms-3 align-self-center" style="display:none;">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+                    <span class="ms-2">Loading...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div>
+        <form th:action="@{/}" th:object="${filter}" role="search" class="search-form">
+            <div class="search-box">
+                <input class="form-control" type="search" th:field="*{search}" placeholder="Enter" aria-label="Search">
+                <button type="submit" hidden></button>
+            </div>
+            <div class="filter-container">
+                <div class="filter-box d-flex">
+                    <div class="filter-item-box">
+                        <span class="filter-title">Sort</span>
+                        <select id="book-sort-select" th:field="*{sort}">
+                            <option value="id,asc">↑ ID</option>
+                            <option value="id,desc">↓ ID</option>
+                            <option value="positionName,asc" selected>↑ Position name</option>
+                            <option value="positionName,desc">↓ Position name</option>
+                            <option value="postedDatetime,asc">↑ Posted date</option>
+                            <option value="postedDatetime,desc">↓ Posted date</option>
+                            <option value="organizationTitle,asc">↑ Organization title</option>
+                            <option value="organizationTitle,desc">↓ Organization title</option>
+                            <option value="laborFunction,asc">↑ Labor function</option>
+                            <option value="laborFunction,desc">↓ Labor function</option>
+                            <option value="location,asc">↑ Location</option>
+                            <option value="location,desc">↓ Location</option>
+                        </select>
+                    </div>
+                    <div class="filter-item-box">
+                        <span class="filter-title">Organization</span>
+                        <select id="job-organization-select" th:field="*{organizations}" multiple>
+                            <option th:each="organization : ${organizations}" th:value="${organization}" th:text="${organization}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-item-box">
+                        <span class="filter-title">Labor function</span>
+                        <select id="job-labor-function-select" th:field="*{laborFunctions}" multiple>
+                            <option th:each="laborFunction : ${laborFunctions}" th:value="${laborFunction}" th:text="${laborFunction}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-item-box">
+                        <span class="filter-title">Location</span>
+                        <select id="job-location-select" th:field="*{locations}" multiple>
+                            <option th:each="location : ${locations}" th:value="${location}" th:text="${location}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-item-box">
+                        <span class="filter-title">Tag</span>
+                        <select id="job-tag-select" th:field="*{tags}" multiple>
+                            <option th:each="tag : ${tags}" th:value="${tag.name}" th:text="${tag.name}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-item-box">
+                        <span class="filter-title">Posted date</span>
+                        <div class="input-box">
+                            <input type="date" th:field="*{fromPostedDate}" placeholder="Min date"/>
+                            <input type="date" th:field="*{toPostedDate}" placeholder="Max date"/>
+                        </div>
+                    </div>
+                    <div class="apply-box">
+                        <button class="apply-btn btn btn-primary" type="submit">Apply</button>
+                        <a th:href="@{/}" class="btn btn-outline-danger clear-btn">Clear</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="items">
+        <div class="items">
+            <div class="card mb-3" th:each="item : ${items}">
+                <div class="row g-0">
+                    <div class="img-box col-md-4">
+                        <img th:src="${item.logoUrl}" class="img-fluid rounded-start" alt="...">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 th:text="${item.positionName}"></h5>
+                            <h6 class="card-title" th:text="${item.organizationTitle}"></h6>
+                            <p class="card-text">
+                                <small class="text-body-secondary" th:text="${#temporals.format(item.postedDatetime, 'MMM dd yyyy, HH:mm')}"></small>
+                            </p>
+                            <div class="tag-container">
+                                <div class="card tag" th:each="tag : ${item.tags}" th:text="${tag.name}"></div>
+                            </div>
+
+                            <button class="btn btn-link toggle-btn" type="button">▼</button>
+
+                            <div class="collapsed-section" style="display: none;">
+                                <h6 th:text="${item.laborFunction}"></h6>
+                                <h6 th:text="${item.location}"></h6>
+                                <hr/>
+                                <div class="description-area" th:utext="${item.description}"></div>
+                                <a th:href="${item.organizationUrl}" class="btn btn-primary ms-auto">Apply now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav aria-label="Page navigation" th:if="${items.totalPages > 1}">
+            <ul class="pagination justify-content-center">
+
+                <!-- Prev page -->
+                <li class="page-item" th:classappend="${items.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${items.number - 1}, size=${items.size})}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, items.totalPages - 1)}"
+                    th:classappend="${pageNum == items.number} ? 'active'">
+                    <a class="page-link" th:href="@{/(page=${pageNum}, size=${items.size})}"
+                       th:text="${pageNum + 1}">1</a>
+                </li>
+
+                <!-- Next page -->
+                <li class="page-item" th:classappend="${items.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${items.number + 1}, size=${items.size})}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+<script th:src="@{/js/script.js}"></script>
+</body>
+</html>
