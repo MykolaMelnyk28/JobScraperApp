@@ -21,6 +21,15 @@ public class JsoupConfig {
     private String baseUrl;
 
     @Bean
+    public JobScratcher jobScratcher(
+        ObjectMapper objectMapper,
+        ElementMapper<JobDto> jobElementsMapper,
+        ElementMapper<Integer> integerElementMapper
+    ) {
+        return new JobScratcherImpl(baseUrl, objectMapper, jobElementsMapper, integerElementMapper);
+    }
+
+    @Bean
     public ElementMapper<JobDto> jobElementMapper(
         ElementMapper<String> textElementMapper,
         ElementMapper<String> htmlElementMapper,
